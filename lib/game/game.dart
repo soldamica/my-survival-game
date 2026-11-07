@@ -142,13 +142,13 @@ class SurvivalGame extends FlameGame
   }
 
   double computeStartX(double value) {
-    const margin = 100.0;
-    return value < (size.x / 2) ? -margin : size.x + margin;
+    const margin = 8.0; // avant: 100.0
+    return value < (size.x / 2) ? margin : size.x - margin;
   }
 
   double computeStartY(double value) {
-    const margin = 100.0;
-    return value < (size.y / 2) ? -margin : size.y + margin;
+    const margin = 8.0; // avant: 100.0
+    return value < (size.y / 2) ? margin : size.y - margin;
   }
 
   void evalNextWave(ZombieSpritePreloader zombieSpritePreloader){
