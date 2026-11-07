@@ -1,4 +1,5 @@
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:first_app_flutter/game/game.dart';
 
@@ -18,18 +19,17 @@ class GamePage extends StatelessWidget {
     return GameWidget<SurvivalGame>.controlled(
       gameFactory: () {
         final game = SurvivalGame();
-        //game.debugMode = true; // 👈 Active l'affichage des FPS, composants, etc.
+        // game.debugMode = kDebugMode;
         return game;
       },
       overlayBuilderMap: {
-        'GameOver': (context, game) {
-          return GameOverOverlay(game: game);
-        },
-        'Performance': (context, game) => const Positioned(
-          top: 0,
-          left: 0,
-          child: PerformanceOverlay(),
-        ),
+        'GameOver': (context, game) => GameOverOverlay(game: game),
+        if (kDebugMode)
+          'Performance': (context, game) => const Positioned(
+                top: 0,
+                left: 0,
+                child: PerformanceOverlay(),
+              ),
       },
     );
   }

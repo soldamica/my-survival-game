@@ -20,11 +20,12 @@ class GunIcon extends SpriteComponent with HasGameRef<SurvivalGame>, CollisionCa
     sprite = await Sprite.load(_spriteGun);
 
     // Ajouter une hitbox ou d'autres configurations si nécessaire
-    add(RectangleHitbox.relative(
-      Vector2(0.5, 0.3),
-      parentSize: size,
-    )
-      ..collisionType = CollisionType.active);
+    add(
+      RectangleHitbox.relative(
+        Vector2(0.5, 0.3),
+        parentSize: size,
+      )..collisionType = CollisionType.passive,
+    );
   }
 
   @override

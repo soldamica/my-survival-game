@@ -24,6 +24,9 @@ class SurvivalGame extends FlameGame
 
   final Random _random = Random();
 
+  static const int _maxAliveZombies = 12;
+  static const int _maxWave = 6;
+
   SurvivalGame()
       : super(
           children: [
@@ -72,8 +75,20 @@ class SurvivalGame extends FlameGame
     await AudioManager().preloadSounds();
   }
 
-  void createWave(ZombieSpritePreloader zombieSpritePreloader) {
-    for (int i = 0; i < wave; i++) {
+  int _countAliveZombies() {
+    int count = 0;
+    for (final c in children) {
+      if (c is Zombie && !c.isReallyDead) count++;
+    }
+    return count;
+  }
+
+  Future<void> createWaveAsync(ZombieSpritePreloader zombieSpritePreloader) async {
+    final alive = _countAliveZombies();
+    if (alive >= _maxAliveZombies) return;
+
+    final toSpawn = min(wave, _maxAliveZombies - alive);
+    for (int i = 0; i < toSpawn; i++) {
       final x = _random.nextDouble() * size.x;
       final y = _random.nextDouble() * size.y;
       add(
@@ -83,8 +98,17 @@ class SurvivalGame extends FlameGame
           zombieSpritePreloader,
         ),
       );
+      await Future<void>.delayed(const Duration(milliseconds: 40)); // lisse la charge
     }
-    if (wave < 4) wave *= 2;
+
+    if (wave < _maxWave) {
+      wave += 1; // progression plus douce que x2
+    }
+  }
+
+  void createWave(ZombieSpritePreloader zombieSpritePreloader) {
+    // garde la signature existante si utilisée ailleurs
+    createWaveAsync(zombieSpritePreloader);
   }
 
   void createInfoComponent(String myText, double relativeX, double relativeY) {

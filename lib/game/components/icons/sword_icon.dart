@@ -20,11 +20,12 @@ class SwordIcon extends SpriteComponent with HasGameRef<SurvivalGame>, Collision
     sprite = await Sprite.load(_spriteSword);
 
     // Ajouter une hitbox ou d'autres configurations si nécessaire
-    add(RectangleHitbox.relative(
-      Vector2(0.5, 0.3),
-      parentSize: size,
-    )
-      ..collisionType = CollisionType.active);
+    add(
+      RectangleHitbox.relative(
+        Vector2(0.5, 0.3),
+        parentSize: size,
+      )..collisionType = CollisionType.passive,
+    );
   }
 
   @override
