@@ -60,6 +60,5 @@ class RightPanel extends PositionComponent with HasGameRef {
 // On ajoute le tout au panneau
     add(border);
     add(text);
-    add(icon);
   }
 }

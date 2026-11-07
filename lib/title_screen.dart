@@ -1,5 +1,6 @@
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:first_app_flutter/game/game_page.dart';
 
@@ -18,6 +19,7 @@ class TitleScreen extends StatefulWidget {
 
 class _TitleScreenState extends State<TitleScreen> {
   late final FocusNode _focusNode = FocusNode();
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -45,8 +47,14 @@ class _TitleScreenState extends State<TitleScreen> {
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       focusNode: _focusNode,
-      onKey: (_) {
-        Navigator.of(context).push(GamePage.route());
+      onKey: (event) {
+        if (_isNavigating) return;
+        if (event is! RawKeyDownEvent) return;
+        _isNavigating = true;
+        Navigator.of(context).push(GamePage.route()).then((_) {
+          _isNavigating = false;
+          _focusNode.requestFocus();
+        });
       },
       child: Scaffold(
         body: Stack(

@@ -22,6 +22,7 @@ class SurvivalGame extends FlameGame
   bool endOfGame = false;
   Vector2 playerPosition = Vector2.zero();
 
+  final Random _random = Random();
 
   SurvivalGame()
       : super(
@@ -52,7 +53,7 @@ class SurvivalGame extends FlameGame
     //overlays.add('Performance');
 
     HeroesSpritePreloader heroesSpritePreloader = HeroesSpritePreloader(game: this);
-    heroesSpritePreloader.preloadAnimations(4);
+    await heroesSpritePreloader.preloadAnimations(4);
     add(Player(size / 2, heroesSpritePreloader));
 
     final screenSize = size;
@@ -63,25 +64,27 @@ class SurvivalGame extends FlameGame
     createInfoComponent('Score : $score', relativeX, relativeY);
 
     ZombieSpritePreloader zombieSpritePreloader = ZombieSpritePreloader(game: this);
-    zombieSpritePreloader.preloadAnimations(4);
+    await zombieSpritePreloader.preloadAnimations(4);
     createWave(zombieSpritePreloader);
 
-    // add Text Component
     add(infoComponent);
 
-    AudioManager().preloadSounds();
+    await AudioManager().preloadSounds();
   }
 
   void createWave(ZombieSpritePreloader zombieSpritePreloader) {
-    print('launch wave!');
-    for(int i = 0; i < wave; i++){
-      double x = Random().nextDouble() * 200;
-      double y = Random().nextDouble() * 200;
-      add(Zombie("leZombie", Vector2(computeStartX(x), computeStartY(y)), zombieSpritePreloader));
+    for (int i = 0; i < wave; i++) {
+      final x = _random.nextDouble() * size.x;
+      final y = _random.nextDouble() * size.y;
+      add(
+        Zombie(
+          "leZombie",
+          Vector2(computeStartX(x), computeStartY(y)),
+          zombieSpritePreloader,
+        ),
+      );
     }
-    if(wave < 4){
-      wave = wave * 2;
-    }
+    if (wave < 4) wave *= 2;
   }
 
   void createInfoComponent(String myText, double relativeX, double relativeY) {
@@ -115,19 +118,13 @@ class SurvivalGame extends FlameGame
   }
 
   double computeStartX(double value) {
-    if(value < 100.0){
-      return value + 100;
-    } else {
-      return size.x - value;
-    }
+    const margin = 100.0;
+    return value < (size.x / 2) ? -margin : size.x + margin;
   }
 
   double computeStartY(double value) {
-    if(value < 100.0){
-      return value + 100;
-    } else {
-      return size.y - value;
-    }
+    const margin = 100.0;
+    return value < (size.y / 2) ? -margin : size.y + margin;
   }
 
   void evalNextWave(ZombieSpritePreloader zombieSpritePreloader){
@@ -136,13 +133,12 @@ class SurvivalGame extends FlameGame
     }
   }
 
-  bool hasRobot(){
-    for(Component component in children){
-      if(component is Zombie && !component.isReallyDead){
+  bool hasRobot() {
+    for (Component component in children) {
+      if (component is Zombie && !component.isReallyDead) {
         return true;
       }
     }
-    print('No have Enemy into the game');
     return false;
   }
 
@@ -154,10 +150,8 @@ class SurvivalGame extends FlameGame
   }
 
   Future<void> showBlood(Vector2 lastPosition) async {
-    Blood endBloood = Blood(lastPosition);
-    endBloood.onLoad();
-    add(endBloood);
+    final endBlood = Blood(lastPosition);
+    add(endBlood);
     return Future.delayed(const Duration(seconds: 1));
   }
-
 }

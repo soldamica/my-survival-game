@@ -1,4 +1,3 @@
-import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/game.dart';
 import 'package:flame/components.dart';
 
