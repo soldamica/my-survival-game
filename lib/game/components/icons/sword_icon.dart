@@ -30,10 +30,10 @@ class SwordIcon extends SpriteComponent with HasGameRef<SurvivalGame>, Collision
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if (!gameRef.canProcessInput()) return;
     super.onCollision(intersectionPoints, other);
     if(other is Player){
       super.removeFromParent();
     }
   }
-
 }

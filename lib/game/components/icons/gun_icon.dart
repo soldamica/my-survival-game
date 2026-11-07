@@ -30,6 +30,7 @@ class GunIcon extends SpriteComponent with HasGameRef<SurvivalGame>, CollisionCa
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if (!gameRef.canProcessInput()) return;
     super.onCollision(intersectionPoints, other);
     if(other is Player){
       super.removeFromParent();

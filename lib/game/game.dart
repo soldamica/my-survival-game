@@ -20,6 +20,7 @@ class SurvivalGame extends FlameGame
   late TextComponent infoComponent;
   bool hasBlood = false;
   bool endOfGame = false;
+  bool controlsLocked = false;
   Vector2 playerPosition = Vector2.zero();
 
   final Random _random = Random();
@@ -138,6 +139,8 @@ class SurvivalGame extends FlameGame
 
   void restart() {
     overlays.remove('GameOver');
+    endOfGame = false;
+    controlsLocked = false;
     resumeEngine();
   }
 
@@ -166,7 +169,12 @@ class SurvivalGame extends FlameGame
     return false;
   }
 
+  bool canProcessInput() => !controlsLocked && !endOfGame;
+
   void finishGame(Vector2 lastPosition) async {
+    if (endOfGame) return;
+    endOfGame = true;
+    controlsLocked = true;
     await showBlood(lastPosition);
     showPopup();
     FlameAudio.bgm.stop();
