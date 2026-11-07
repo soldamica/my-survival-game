@@ -61,11 +61,13 @@ class SurvivalGame extends FlameGame
     add(Player(size / 2, heroesSpritePreloader));
 
     final screenSize = size;
-    final relativeX = 300.0; //TODO : position relative?
+    final relativeX = 300.0;
     final relativeY = screenSize.y - 100;
 
-    createInfoComponent('Bullets : $bullets', relativeX, relativeY);
-    createInfoComponent('Score : $score', relativeX, relativeY);
+    // avant: 2 appels successifs qui écrasaient infoComponent
+    // createInfoComponent('Bullets : $bullets', relativeX, relativeY);
+    // createInfoComponent('Score : $score', relativeX, relativeY);
+    createInfoComponent('Bullets : $bullets, Score : $score', relativeX, relativeY);
 
     ZombieSpritePreloader zombieSpritePreloader = ZombieSpritePreloader(game: this);
     await zombieSpritePreloader.preloadAnimations(4);
