@@ -35,7 +35,7 @@ class HeroesSpritePreloader {
           textureSize: Vector2(65, 65),
           amountPerRow: 4,
           texturePosition: Vector2(20, line * 65),
-          loop: false
+          loop: true // changé: animation en boucle pendant l'appui
       ),
     );
   }
