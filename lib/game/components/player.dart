@@ -29,8 +29,11 @@ class Player extends SpriteAnimationComponent
   /// Screen pixels per second.
   static const _speed = 160.0;
 
-  /// Sword reach in ground units (about one character width in front).
-  static const _swordReach = 70.0;
+  /// Sword reach in screen pixels when striking left/right...
+  static const _swordReach = 80.0;
+
+  /// ...and when striking up/down (longer, as requested).
+  static const _swordReachVertical = 110.0;
 
   /// Remaining time of the current swing (0 = not attacking).
   double _attackTime = 0;
@@ -177,14 +180,18 @@ class Player extends SpriteAnimationComponent
   }
 
   /// Kills zombies in a cone in front of the hero.
+  /// Measured on screen (not on the ground plane), so the reach looks the
+  /// same in every direction; up/down strikes get a longer reach.
   void _applySwordHit() {
-    final facing = _facingGround();
+    final facing = Iso.deltaToScreen(_facingGround()).normalized();
+    final vertical = facing.y.abs(); // 0 = left/right, 1 = up/down
+    final reach = _swordReach + (_swordReachVertical - _swordReach) * vertical;
     for (final z in game.world.children.whereType<Zombie>().toList()) {
       if (z.isReallyDead) continue;
-      final to = z.ground - ground;
+      final to = Iso.deltaToScreen(z.ground - ground);
       final dist = to.length;
-      if (dist > _swordReach) continue;
-      if (dist < 12 || facing.dot(to / dist) > 0.3) z.die();
+      if (dist > reach) continue;
+      if (dist < 16 || facing.dot(to / dist) > 0.3) z.die();
     }
   }
 }

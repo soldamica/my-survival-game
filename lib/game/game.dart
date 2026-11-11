@@ -66,7 +66,7 @@ class SurvivalGame extends FlameGame
     await images.loadAll(_images);
     await _heroSheet.load(this, 'chevalier_noir_marche_768.png', stepTime: 0.08);
     await _heroAttackSheet.load(this, 'chevalier_noir_attaque_384x768.png', stepTime: 0.07);
-    await _zombieSheet.load(this, 'iso/zombie.png', stepTime: 0.14);
+    await _zombieSheet.load(this, 'gobelin_pique_marche_768.png', stepTime: 0.14);
 
     world.addAll([
       Background(),
