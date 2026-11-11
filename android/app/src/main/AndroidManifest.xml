@@ -1,7 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.first_app_flutter">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <application
-        android:label="first_app_flutter"
+        android:label="zombie_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

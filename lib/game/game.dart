@@ -8,6 +8,7 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'RightPanel.dart';
 
@@ -58,7 +59,12 @@ class SurvivalGame extends FlameGame
 
     HeroesSpritePreloader heroesSpritePreloader = HeroesSpritePreloader(game: this);
     await heroesSpritePreloader.preloadAnimations(4);
-    add(Player(size / 2, heroesSpritePreloader));
+    final player = Player(size / 2, heroesSpritePreloader);
+    add(player);
+
+    if (_isMobile) {
+      _addTouchControls(player);
+    }
 
     final screenSize = size;
     final relativeX = 300.0;
@@ -76,6 +82,46 @@ class SurvivalGame extends FlameGame
     add(infoComponent);
 
     await AudioManager().preloadSounds();
+  }
+
+  bool get _isMobile =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  void _addTouchControls(Player player) {
+    final joystick = JoystickComponent(
+      priority: 100,
+      knob: CircleComponent(
+        radius: 25,
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.6),
+      ),
+      background: CircleComponent(
+        radius: 60,
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.2),
+      ),
+      margin: const EdgeInsets.only(left: 40, bottom: 40),
+    );
+
+    final shootButton = HudButtonComponent(
+      priority: 100,
+      button: CircleComponent(
+        radius: 40,
+        paint: Paint()..color = Colors.red.withValues(alpha: 0.5),
+      ),
+      buttonDown: CircleComponent(
+        radius: 40,
+        paint: Paint()..color = Colors.red.withValues(alpha: 0.8),
+      ),
+      margin: const EdgeInsets.only(right: 40, bottom: 50),
+      onPressed: () {
+        if (canProcessInput()) player.shoot();
+      },
+    );
+
+    player.joystick = joystick;
+    add(joystick);
+    add(shootButton);
   }
 
   int _countAliveZombies() {

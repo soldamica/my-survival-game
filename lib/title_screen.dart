@@ -43,20 +43,27 @@ class _TitleScreenState extends State<TitleScreen> {
     super.dispose();
   }
 
+  void _startGame() {
+    if (_isNavigating) return;
+    _isNavigating = true;
+    Navigator.of(context).push(GamePage.route()).then((_) {
+      _isNavigating = false;
+      _focusNode.requestFocus();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
+    return KeyboardListener(
       focusNode: _focusNode,
-      onKey: (event) {
-        if (_isNavigating) return;
-        if (event is! RawKeyDownEvent) return;
-        _isNavigating = true;
-        Navigator.of(context).push(GamePage.route()).then((_) {
-          _isNavigating = false;
-          _focusNode.requestFocus();
-        });
+      onKeyEvent: (event) {
+        if (event is! KeyDownEvent) return;
+        _startGame();
       },
-      child: Scaffold(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _startGame,
+        child: Scaffold(
         body: Stack(
           children: [
             Positioned.fill(
@@ -88,7 +95,7 @@ class _TitleScreenState extends State<TitleScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        'Press any button to play',
+                        'Press any button or tap to play',
                         style: GoogleFonts.pressStart2p(
                           fontSize: 16,
                           color: const Color(0xff61d3e3),
@@ -101,6 +108,7 @@ class _TitleScreenState extends State<TitleScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

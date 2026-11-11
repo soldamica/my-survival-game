@@ -25,13 +25,16 @@ class Player extends SpriteAnimationComponent
         );
 
   static const _speed = 100.0;
-  static const upLimitX = 1500.0;
-  static const downLimitX = 500.0;
-  static const upLimitY = 750.0;
-  static const downLimitY = 250.0;
   final _direction = Vector2.zero();
   Vector2 lastDirection = Vector2.zero();
   double bulletAngle = 0;
+
+  /// Joystick tactile (mobile uniquement), null sur desktop.
+  JoystickComponent? joystick;
+  static const _joystickDeadZone = 0.15;
+  bool _joystickActive = false;
+  // 0 = bas, 1 = gauche, 2 = droite, 3 = haut, -1 = aucun
+  int _joystickAnimLine = -1;
 
   @override
   Future<void> onLoad() async {
@@ -71,17 +74,7 @@ class Player extends SpriteAnimationComponent
             return false;
           },
           LogicalKeyboardKey.space: (_) {
-            if(game.bullets > 0){
-              gameRef.add(
-                  Bullet(
-                      position + getBulletStart(getBulletDirection(_direction, lastDirection)),
-                      getBulletDirection(_direction, lastDirection),
-                      bulletAngle
-                  )
-              );
-              gameRef.bullets--;
-              gameRef.updateText();
-            }
+            shoot();
             return false;
           }
         },
@@ -170,6 +163,14 @@ class Player extends SpriteAnimationComponent
   void update(double dt) {
     super.update(dt * 0.5);
 
+    _applyJoystick();
+
+    // Limites proportionnelles à l'écran (ex-valeurs 500..1500 / 250..750 sur 2000x1000).
+    final upLimitX = gameRef.size.x * 0.75;
+    final downLimitX = gameRef.size.x * 0.25;
+    final upLimitY = gameRef.size.y * 0.75;
+    final downLimitY = gameRef.size.y * 0.25;
+
     var diff = _direction * _speed * dt;
     var tmp = position + diff;
 
@@ -201,6 +202,66 @@ class Player extends SpriteAnimationComponent
       gameRef.updateText();
     } else if (other is Zombie){
       animation = null;
+    }
+  }
+
+  void shoot() {
+    if (gameRef.bullets <= 0) return;
+    final dir = getBulletDirection(_direction, lastDirection);
+    if (dir.isZero()) return;
+    final normalized = dir.normalized();
+    gameRef.add(
+      Bullet(
+        position + getBulletStart(normalized),
+        normalized,
+        normalized.screenAngle(),
+      ),
+    );
+    gameRef.bullets--;
+    gameRef.updateText();
+  }
+
+  void _applyJoystick() {
+    final stick = joystick;
+    if (stick == null) return;
+
+    if (stick.intensity < _joystickDeadZone) {
+      if (_joystickActive) {
+        _joystickActive = false;
+        _joystickAnimLine = -1;
+        _direction.setZero();
+      }
+      return;
+    }
+
+    _joystickActive = true;
+    final delta = stick.relativeDelta;
+    _direction.setFrom(delta);
+    lastDirection = delta.normalized();
+    bulletAngle = lastDirection.screenAngle();
+
+    final int line;
+    if (delta.x.abs() > delta.y.abs()) {
+      line = delta.x < 0 ? 1 : 2;
+    } else {
+      line = delta.y < 0 ? 3 : 0;
+    }
+    if (line != _joystickAnimLine) {
+      _joystickAnimLine = line;
+      switch (line) {
+        case 0:
+          goDown();
+          break;
+        case 1:
+          goLeft();
+          break;
+        case 2:
+          goRight();
+          break;
+        case 3:
+          goUp();
+          break;
+      }
     }
   }
 
