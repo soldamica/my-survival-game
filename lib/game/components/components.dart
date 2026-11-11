@@ -6,3 +6,4 @@ export 'bullet.dart';
 export 'monsters/zombie.dart';
 export 'game_over_overlay.dart';
 export 'animations/blood.dart';
+export 'hud/hud.dart';

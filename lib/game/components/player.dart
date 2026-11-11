@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:first_app_flutter/game/components/components.dart';
 import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/game.dart';
+import 'package:first_app_flutter/game/theme/game_resolution.dart';
 import 'package:first_app_flutter/game/utils/heroes_sprite_preloader.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -41,7 +42,7 @@ class Player extends SpriteAnimationComponent
 
     initPosition();
 
-    size = Vector2.all(40);
+    size = Vector2.all(16 * GameResolution.pixelScale);
 
     add(
       RectangleHitbox.relative(

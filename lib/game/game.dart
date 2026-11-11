@@ -10,7 +10,6 @@ import 'package:flame/input.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'RightPanel.dart';
 
 class SurvivalGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -45,16 +44,10 @@ class SurvivalGame extends FlameGame
   Future<void> onLoad() async {
     super.onLoad();
 
-    final sprite = await loadSprite('empty.jpeg');
+    // ALttP-style HUD (replaces RightPanel + text info).
+    add(Hud());
 
-    add(
-      RightPanel(
-        label: 'Label',
-        iconSprite: sprite,
-      ),
-    );
-
-    add(FpsTextComponent(position: Vector2(10, 10)));
+    add(FpsTextComponent(position: Vector2(10, 80)));
     //overlays.add('Performance');
 
     HeroesSpritePreloader heroesSpritePreloader = HeroesSpritePreloader(game: this);
@@ -66,20 +59,10 @@ class SurvivalGame extends FlameGame
       _addTouchControls(player);
     }
 
-    final screenSize = size;
-    final relativeX = 300.0;
-    final relativeY = screenSize.y - 100;
-
-    // avant: 2 appels successifs qui écrasaient infoComponent
-    // createInfoComponent('Bullets : $bullets', relativeX, relativeY);
-    // createInfoComponent('Score : $score', relativeX, relativeY);
-    createInfoComponent('Bullets : $bullets, Score : $score', relativeX, relativeY);
-
     ZombieSpritePreloader zombieSpritePreloader = ZombieSpritePreloader(game: this);
     await zombieSpritePreloader.preloadAnimations(4);
     createWave(zombieSpritePreloader);
 
-    add(infoComponent);
 
     await AudioManager().preloadSounds();
   }
@@ -173,9 +156,8 @@ class SurvivalGame extends FlameGame
     );
   }
 
-  void updateText() {
-    infoComponent.text = 'Bullets : $bullets, Score : $score';
-  }
+  /// Kept for existing callers; the HUD reads game values every frame.
+  void updateText() {}
 
   void showPopup() {
     overlays.add('GameOver');

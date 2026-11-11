@@ -1,19 +1,37 @@
+import 'package:first_app_flutter/game/components/pixel/pixel_art_data.dart';
+import 'package:first_app_flutter/game/components/pixel/pixel_sprite.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
 class HeroesSpritePreloader {
 
   final List<SpriteAnimation> _animations = [];
-  static const _sprite_hero = 'gym-leader-thumbnail-removebg-preview.png';
 
   final Game game;
 
   HeroesSpritePreloader({required this.game});
   
+  /// Builds walk animations from code-generated pixel art (16x16 frames).
+  /// Lines: 0 = down, 1 = left, 2 = right, 3 = up.
   Future<void> preloadAnimations(int totalLines) async {
+    final sheet = await PixelSprite.sheet(
+      PixelArtData.characterRows,
+      PixelArtData.heroPalette,
+    );
     for (int line = 0; line < totalLines; line++) {
-      final animation = await _loadLineFromSprite(line);
-      _animations.add(animation);
+      _animations.add(
+        SpriteAnimation.fromFrameData(
+          sheet,
+          SpriteAnimationData.sequenced(
+            amount: 4,
+            stepTime: 0.15,
+            textureSize: Vector2.all(16),
+            amountPerRow: 4,
+            texturePosition: Vector2(0, line * 16.0),
+            loop: true,
+          ),
+        ),
+      );
     }
   }
 
@@ -24,20 +42,4 @@ class HeroesSpritePreloader {
     }
     return _animations[line];
   }
-
-  /// Charge une ligne spécifique du sprite
-  Future<SpriteAnimation> _loadLineFromSprite(int line) async {
-    return await game.loadSpriteAnimation(
-      _sprite_hero,
-      SpriteAnimationData.sequenced(
-          amount: 4, // Nombre de frames
-          stepTime: 0.1, // Temps entre les frames
-          textureSize: Vector2(65, 65),
-          amountPerRow: 4,
-          texturePosition: Vector2(20, line * 65),
-          loop: true // changé: animation en boucle pendant l'appui
-      ),
-    );
-  }
-
 }

@@ -1,11 +1,14 @@
 import 'package:first_app_flutter/game/components/components.dart';
+import 'package:first_app_flutter/game/components/pixel/pixel_art_data.dart';
+import 'package:first_app_flutter/game/components/pixel/pixel_sprite.dart';
+import 'package:first_app_flutter/game/theme/game_resolution.dart';
 import 'package:first_app_flutter/game/utils/AudioManager.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:first_app_flutter/game/game.dart';
 
 class Bullet extends SpriteComponent with HasGameRef<SurvivalGame>, CollisionCallbacks {
-  static const _spriteBullet = 'bullet.png';
+  static Sprite? _arrowSprite;
   Vector2 _bulletDirection;
   Vector2 positionInitial;
 
@@ -16,25 +19,24 @@ class Bullet extends SpriteComponent with HasGameRef<SurvivalGame>, CollisionCal
         super(
         angle: angleOrigin,
         position: Vector2.copy(positionOrigin),
-        size: Vector2(20, 20),
+        size: Vector2(3, 9) * GameResolution.pixelScale,
+        anchor: Anchor.center,
       );
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Charger le sprite et l'assigner à ce composant
-    sprite = await Sprite.load(_spriteBullet);
+    // Pixel-art arrow (pointing up; rotated by `angle`).
+    _arrowSprite ??= await PixelSprite.sprite(
+      PixelArtData.arrow,
+      PixelArtData.arrowPalette,
+    );
+    sprite = _arrowSprite;
 
     AudioManager().playPanSound();
 
-    //debugMode = true;
-    // Ajouter une hitbox ou d'autres configurations si nécessaire
-    add(RectangleHitbox.relative(
-      Vector2(0.7, 0.5),
-      parentSize: size,
-    )
-      ..collisionType = CollisionType.active);
+    add(RectangleHitbox()..collisionType = CollisionType.active);
   }
 
   @override

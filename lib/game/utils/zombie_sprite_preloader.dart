@@ -1,19 +1,37 @@
+import 'package:first_app_flutter/game/components/pixel/pixel_art_data.dart';
+import 'package:first_app_flutter/game/components/pixel/pixel_sprite.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
 class ZombieSpritePreloader {
 
   final List<SpriteAnimation> _animations = [];
-  static const _spriteMecha = 'mecha2.png';
 
   final Game game;
 
   ZombieSpritePreloader({required this.game});
   
+  /// Builds walk animations from code-generated pixel art (hero grids,
+  /// zombie palette). Lines: 0 = down, 1 = left, 2 = right, 3 = up.
   Future<void> preloadAnimations(int totalLines) async {
+    final sheet = await PixelSprite.sheet(
+      PixelArtData.characterRows,
+      PixelArtData.zombiePalette,
+    );
     for (int line = 0; line < totalLines; line++) {
-      final animation = await _loadLineFromSprite(line);
-      _animations.add(animation);
+      _animations.add(
+        SpriteAnimation.fromFrameData(
+          sheet,
+          SpriteAnimationData.sequenced(
+            amount: 4,
+            stepTime: 0.3,
+            textureSize: Vector2.all(16),
+            amountPerRow: 4,
+            texturePosition: Vector2(0, line * 16.0),
+            loop: false,
+          ),
+        ),
+      );
     }
   }
 
@@ -24,20 +42,4 @@ class ZombieSpritePreloader {
     }
     return _animations[line];
   }
-
-  /// Charge une ligne spécifique du sprite
-  Future<SpriteAnimation> _loadLineFromSprite(int line) async {
-    return await game.loadSpriteAnimation(
-      _spriteMecha,
-      SpriteAnimationData.sequenced(
-        amount: 4, // Nombre de frames
-        stepTime: 0.3, // Temps entre les frames
-        textureSize: Vector2(65, 65),
-        amountPerRow: 4,
-        texturePosition: Vector2(0, line * 65),
-        loop: false,
-      ),
-    );
-  }
-
 }

@@ -1,6 +1,7 @@
 import 'package:first_app_flutter/game/components/bullet.dart';
 import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/game.dart';
+import 'package:first_app_flutter/game/theme/game_resolution.dart';
 import 'package:first_app_flutter/game/utils/AudioManager.dart';
 import 'package:first_app_flutter/game/utils/zombie_sprite_preloader.dart';
 import 'package:flame/collisions.dart';
@@ -35,7 +36,7 @@ class Zombie extends SpriteAnimationComponent
       AudioManager().playZombieSound();
       animation = mySpriteLoaded.getAnimationForLine(0);
 
-      size = Vector2.all(70);
+      size = Vector2.all(16 * GameResolution.pixelScale);
     } catch (e) {
       print("Erreur lors du chargement de l'animation : $e");
     }
