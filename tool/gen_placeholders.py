@@ -52,6 +52,12 @@ class Img:
                 if c[3]:
                     self.set(ox + x, oy + y, c)
 
+    def scaled(self, k):
+        out = Img(self.w * k, self.h * k)
+        for y in range(out.h):
+            for x in range(out.w):
+                out.px[y][x] = self.px[y // k][x // k]
+        return out
     def save(self, name):
         raw = b''.join(b'\x00' + b''.join(bytes(p) for p in row) for row in self.px)
 
@@ -116,31 +122,30 @@ def main():
             t.set(12, 7, shade(base, 0.6)); t.set(13, 8, shade(base, 0.6)); t.set(14, 8, shade(base, 0.6))
         if i == 3:
             t.ellipse(20, 8, 2, 1, shade(base, 1.25))
-        t.save(f'floor_{i}.png')
+        t.scaled(2).save(f'floor_{i}.png')  # 64x32
 
-    character(body=(110, 30, 26), head=(205, 160, 120), accent=(170, 140, 60),
-              eye=(30, 20, 20)).save('hero.png')
+    # Hero art: assets/images/chevalier_noir_marche_768.png (user provided).
     character(body=(70, 82, 56), head=(120, 140, 100), accent=(60, 40, 30),
-              eye=(230, 40, 30)).save('zombie.png')
+              eye=(230, 40, 30)).scaled(2).save('zombie.png')  # 768x768, frames 96x96
 
-    s = Img(24, 12); s.ellipse(12, 6, 11, 5, (0, 0, 0, 110)); s.save('shadow.png')
+    s = Img(24, 12); s.ellipse(12, 6, 11, 5, (0, 0, 0, 110)); s.scaled(2).save('shadow.png')
 
     a = Img(16, 4)
     a.rect(3, 1, 10, 2, (140, 100, 60)); a.rect(13, 0, 3, 4, (200, 200, 210))
     a.rect(0, 0, 3, 1, (180, 40, 30)); a.rect(0, 3, 3, 1, (180, 40, 30))
-    a.save('arrow.png')
+    a.scaled(2).save('arrow.png')
 
     q = Img(16, 16)  # quiver pickup
     q.rect(5, 3, 6, 12, (90, 55, 30)); q.rect(5, 6, 6, 1, (170, 140, 60))
     for x in (6, 8, 10):
         q.rect(x, 0, 1, 4, (140, 100, 60)); q.set(x, 0, (200, 200, 210))
-    q.save('arrow_pickup.png')
+    q.scaled(2).save('arrow_pickup.png')
 
     w = Img(16, 16)  # sword pickup
     for i in range(10):
         w.set(4 + i, 11 - i, (200, 200, 210)); w.set(5 + i, 11 - i, (150, 150, 160))
     w.rect(2, 11, 5, 2, (170, 140, 60)); w.rect(3, 13, 2, 2, (90, 55, 30))
-    w.save('sword_pickup.png')
+    w.scaled(2).save('sword_pickup.png')
 
     # HUD bottom panel 640x72 (stone with bevel, orb sockets)
     p = Img(640, 72)

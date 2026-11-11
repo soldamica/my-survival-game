@@ -1,20 +1,24 @@
+import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/game.dart';
 import 'package:first_app_flutter/game/iso/gothic.dart';
 import 'package:first_app_flutter/game/iso/iso.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
-/// Diablo-like bottom panel (screen space, 640x72): life orb (left),
-/// arrows orb (right), skill buttons (bow / locked sword), kills and wave.
+/// Diablo-like bottom panel. Art is 640x72, drawn at x[scale] to fit the
+/// 960-wide view: life orb (left),
+/// arrows orb (right), skills (equipped one highlighted), kills and wave.
 class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
   Hud()
       : super(
           position: Vector2(0, Iso.viewHeight - panelHeight),
-          size: Vector2(Iso.viewWidth, panelHeight),
+          size: Vector2(Iso.viewWidth / _scale, panelHeight / _scale),
+          scale: Vector2.all(_scale),
           priority: 100,
         );
 
-  static const double panelHeight = 72;
+  static const double _scale = Iso.viewWidth / 640;
+  static const double panelHeight = 72 * _scale;
   static const double _orb = 64;
   static const int maxArrows = 50;
 
@@ -22,6 +26,10 @@ class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
   final TextPaint _label = TextPaint(style: Gothic.font(size: 9, color: Gothic.gold));
   final TextPaint _value = TextPaint(style: Gothic.font(size: 12));
   final _lock = Paint()..color = const Color(0xB0000000);
+  final _active = Paint()
+    ..color = Gothic.gold
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
 
   @override
   Future<void> onLoad() async {
@@ -45,13 +53,19 @@ class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
     _value.render(canvas, '${game.bullets}', Vector2(size.x - 36, 38),
         anchor: Anchor.center);
 
-    // Skills: bow (left click equivalent) and sword (locked for now).
+    // Skills: sword (always usable) and bow (dimmed without arrows).
     const y = 32.0;
-    _bow.render(canvas, position: Vector2(258, y));
-    _label.render(canvas, 'ARC', Vector2(272, y - 2), anchor: Anchor.bottomCenter);
-    _sword.render(canvas, position: Vector2(354, y));
-    canvas.drawRect(const Rect.fromLTWH(354, y, 28, 28), _lock);
-    _label.render(canvas, 'ÉPÉE', Vector2(368, y - 2), anchor: Anchor.bottomCenter);
+    const swordRect = Rect.fromLTWH(258, y, 28, 28);
+    const bowRect = Rect.fromLTWH(354, y, 28, 28);
+    _sword.render(canvas, position: Vector2(swordRect.left, y));
+    _label.render(canvas, 'ÉPÉE', Vector2(272, y - 2), anchor: Anchor.bottomCenter);
+    _bow.render(canvas, position: Vector2(bowRect.left, y));
+    if (game.bullets <= 0) canvas.drawRect(bowRect, _lock);
+    _label.render(canvas, 'ARC', Vector2(368, y - 2), anchor: Anchor.bottomCenter);
+    canvas.drawRect(
+      (game.weapon == Weapon.sword ? swordRect : bowRect).inflate(2),
+      _active,
+    );
 
     // Kills / wave.
     _label.render(canvas, 'TUÉS', Vector2(320, y), anchor: Anchor.topCenter);

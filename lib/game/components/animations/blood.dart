@@ -6,7 +6,7 @@ class Blood extends SpriteComponent with HasGameReference<SurvivalGame> {
   Blood(Vector2 position)
       : super(
           position: position,
-          size: Vector2.all(64),
+          size: Vector2.all(128),
           anchor: Anchor.center,
           priority: 1 << 20,
         );

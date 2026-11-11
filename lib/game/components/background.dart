@@ -56,7 +56,7 @@ class LightRadius extends PositionComponent with HasGameReference<SurvivalGame> 
     _paint.shader = const RadialGradient(
       colors: [Color(0x00000000), Color(0x00000000), Color(0xE6000000)],
       stops: [0, 0.35, 1],
-    ).createShader(Rect.fromCircle(center: Offset(center.x, center.y), radius: 260));
+    ).createShader(Rect.fromCircle(center: Offset(center.x, center.y), radius: 420));
     canvas.drawRect(const Rect.fromLTWH(0, 0, Iso.viewWidth, Iso.viewHeight), _paint);
   }
 }

@@ -15,7 +15,7 @@ class Zombie extends SpriteAnimationComponent
   Zombie(this.name, Vector2 startGround, this.sheet)
       : super(
           size: Vector2.all(CharacterSheet.frame),
-          anchor: const Anchor(0.5, 44 / 48),
+          anchor: CharacterSheet.feet,
         ) {
     ground.setFrom(startGround);
   }
@@ -26,7 +26,7 @@ class Zombie extends SpriteAnimationComponent
   bool isfocus = true;
 
   /// Ground units per second.
-  static const _speed = 32.0;
+  static const _speed = 64.0;
   int _row = 0;
   late final Sprite _shadow;
 
@@ -35,7 +35,8 @@ class Zombie extends SpriteAnimationComponent
     AudioManager().playZombieSound();
     animation = sheet.row(_row);
     _shadow = Sprite(game.images.fromCache('iso/shadow.png'));
-    add(RectangleHitbox(position: Vector2(16, 18), size: Vector2(16, 26)));
+    // Lower body only, so overlaps look right in isometric view.
+    add(RectangleHitbox(position: Vector2(34, 40), size: Vector2(28, 48)));
     syncIso();
   }
 
@@ -64,17 +65,23 @@ class Zombie extends SpriteAnimationComponent
     syncIso();
   }
 
+  /// Killed by an arrow or a sword hit.
+  void die() {
+    if (isReallyDead) return;
+    isReallyDead = true;
+    removeFromParent();
+    AudioManager().playExplosedSound();
+    game.score++;
+    game.evalNextWave();
+  }
+
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (isReallyDead) return;
 
     if (other is Bullet) {
-      isReallyDead = true;
-      removeFromParent();
-      AudioManager().playExplosedSound();
-      game.score++;
-      game.evalNextWave();
+      die();
       return;
     }
 

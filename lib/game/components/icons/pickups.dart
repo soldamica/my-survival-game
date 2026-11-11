@@ -8,7 +8,7 @@ import 'package:flame/components.dart';
 class Pickup extends SpriteComponent
     with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody {
   Pickup(Vector2 startGround, this.imagePath, {this.onPicked})
-      : super(size: Vector2.all(16), anchor: const Anchor(0.5, 0.9)) {
+      : super(size: Vector2.all(32), anchor: const Anchor(0.5, 0.9)) {
     ground.setFrom(startGround);
   }
 
@@ -35,9 +35,4 @@ class Pickup extends SpriteComponent
 class GunIcon extends Pickup {
   GunIcon(Vector2 ground)
       : super(ground, 'iso/arrow_pickup.png', onPicked: (g) => g.bullets = 50);
-}
-
-/// Sword: no effect yet (melee comes later).
-class SwordIcon extends Pickup {
-  SwordIcon(Vector2 ground) : super(ground, 'iso/sword_pickup.png');
 }

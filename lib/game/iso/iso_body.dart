@@ -2,9 +2,9 @@ import 'package:first_app_flutter/game/iso/iso.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
-/// Shadow (24x12) under a 48x48 character frame whose feet are at (24, 44).
+/// Shadow (48x24) under a 96x96 character frame whose feet are at (48, 88).
 /// Call from render() before super.render(). Image: 'iso/shadow.png'.
-final _shadowPos = Vector2(12, 38);
+final _shadowPos = Vector2(24, 76);
 void renderShadow(Canvas canvas, Sprite shadow) =>
     shadow.render(canvas, position: _shadowPos);
 

@@ -1,4 +1,5 @@
 import 'package:first_app_flutter/game/components/components.dart';
+import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/game.dart';
 import 'package:first_app_flutter/game/iso/character_sheet.dart';
 import 'package:first_app_flutter/game/iso/iso.dart';
@@ -9,22 +10,31 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 
 /// Hero. Arrow keys move in screen directions (up = up on screen),
-/// space shoots an arrow. Logic runs on the ground plane.
+/// space attacks with the equipped weapon, E switches weapon.
+/// Logic runs on the ground plane.
 class Player extends SpriteAnimationComponent
     with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody {
-  Player(Vector2 startGround, this.sheet)
+  Player(Vector2 startGround, this.sheet, this.attackSheet)
       : super(
           size: Vector2.all(CharacterSheet.frame),
-          anchor: const Anchor(0.5, 44 / 48), // feet
+          anchor: CharacterSheet.feet,
         ) {
     ground.setFrom(startGround);
   }
 
   final CharacterSheet sheet;
+  final CharacterSheet attackSheet;
   bool isDead = false;
 
   /// Screen pixels per second.
-  static const _speed = 80.0;
+  static const _speed = 160.0;
+
+  /// Sword reach in ground units (about one character width in front).
+  static const _swordReach = 70.0;
+
+  /// Remaining time of the current swing (0 = not attacking).
+  double _attackTime = 0;
+  bool _hitDone = false;
 
   /// Current input, screen space (x right, y down).
   final _direction = Vector2.zero();
@@ -49,7 +59,8 @@ class Player extends SpriteAnimationComponent
     animation = sheet.row(_row);
     playing = false;
     _shadow = Sprite(game.images.fromCache('iso/shadow.png'));
-    add(RectangleHitbox(position: Vector2(16, 18), size: Vector2(16, 26)));
+    // Lower body only, so overlaps look right in isometric view.
+    add(RectangleHitbox(position: Vector2(34, 40), size: Vector2(28, 48)));
     add(KeyboardListenerComponent(
       keyDown: {
         for (final k in _keys) k: (_) => _onKey(k, true),
@@ -57,7 +68,11 @@ class Player extends SpriteAnimationComponent
       keyUp: {
         for (final k in _keys) k: (_) => _onKey(k, false),
         LogicalKeyboardKey.space: (_) {
-          if (game.canProcessInput()) shoot();
+          if (game.canProcessInput()) attack();
+          return false;
+        },
+        LogicalKeyboardKey.keyE: (_) {
+          game.toggleWeapon();
           return false;
         },
       },
@@ -94,6 +109,19 @@ class Player extends SpriteAnimationComponent
       }
     }
 
+    if (_attackTime > 0) {
+      _attackTime -= dt;
+      if (!_hitDone && _attackTime <= attackSheet.duration / 2) {
+        _hitDone = true;
+        _applySwordHit();
+      }
+      if (_attackTime > 0) {
+        syncIso();
+        return; // rooted while swinging
+      }
+      animation = sheet.row(_row);
+    }
+
     final moving = !_direction.isZero();
     playing = moving;
     if (moving) {
@@ -112,12 +140,51 @@ class Player extends SpriteAnimationComponent
     game.playerPosition.setFrom(position);
   }
 
+  /// Main action: sword swing or bow shot, depending on the equipped weapon.
+  void attack() {
+    if (isDead || _attackTime > 0) return;
+    switch (game.weapon) {
+      case Weapon.sword:
+        _startSwing();
+      case Weapon.bow:
+        shoot(); // does nothing without arrows
+    }
+  }
+
   void shoot() {
     if (game.bullets <= 0) return;
+    final groundDir = _facingGround();
+    game.world.add(Bullet(ground + groundDir * 20, groundDir));
+    game.bullets--;
+  }
+
+  Vector2 _facingGround() {
     final screenDir =
         _direction.isZero() ? lastDirection : _direction.normalized();
-    final groundDir = Iso.deltaToGround(screenDir).normalized();
-    game.world.add(Bullet(ground + groundDir * 10, groundDir));
-    game.bullets--;
+    return Iso.deltaToGround(screenDir).normalized();
+  }
+
+  void _startSwing() {
+    if (!_direction.isZero()) {
+      lastDirection = _direction.normalized();
+      _row = Iso.dirRow(lastDirection, _row);
+    }
+    _attackTime = attackSheet.duration;
+    _hitDone = false;
+    animation = attackSheet.row(_row);
+    animationTicker?.reset();
+    playing = true;
+  }
+
+  /// Kills zombies in a cone in front of the hero.
+  void _applySwordHit() {
+    final facing = _facingGround();
+    for (final z in game.world.children.whereType<Zombie>().toList()) {
+      if (z.isReallyDead) continue;
+      final to = z.ground - ground;
+      final dist = to.length;
+      if (dist > _swordReach) continue;
+      if (dist < 12 || facing.dot(to / dist) > 0.3) z.die();
+    }
   }
 }

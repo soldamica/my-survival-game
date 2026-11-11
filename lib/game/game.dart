@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:first_app_flutter/game/components/components.dart';
+import 'package:first_app_flutter/game/components/hud/weapon_switch_button.dart';
+import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/iso/character_sheet.dart';
 import 'package:first_app_flutter/game/iso/gothic.dart';
 import 'package:first_app_flutter/game/iso/iso.dart';
@@ -23,6 +25,10 @@ class SurvivalGame extends FlameGame
         );
 
   int bullets = 0;
+
+  /// Equipped weapon. The game starts with the sword (always usable);
+  /// the bow only works while arrows are left.
+  Weapon weapon = Weapon.sword;
   int score = 0;
   int wave = 1;
   bool endOfGame = false;
@@ -38,6 +44,7 @@ class SurvivalGame extends FlameGame
 
   final Random _random = Random();
   final CharacterSheet _heroSheet = CharacterSheet();
+  final CharacterSheet _heroAttackSheet = CharacterSheet(frames: 4, loop: false);
   final CharacterSheet _zombieSheet = CharacterSheet();
 
   static const int _maxAliveZombies = 12;
@@ -45,7 +52,7 @@ class SurvivalGame extends FlameGame
 
   static const _images = [
     'iso/floor_0.png', 'iso/floor_1.png', 'iso/floor_2.png', 'iso/floor_3.png',
-    'iso/shadow.png', 'iso/arrow.png', 'iso/arrow_pickup.png', 'iso/sword_pickup.png',
+    'iso/shadow.png', 'iso/arrow.png', 'iso/arrow_pickup.png',
     'iso/hud_panel.png', 'iso/orb_frame.png', 'iso/orb_red.png', 'iso/orb_blue.png',
     'iso/skill_bow.png', 'iso/skill_sword.png',
   ];
@@ -57,17 +64,17 @@ class SurvivalGame extends FlameGame
   Future<void> onLoad() async {
     await super.onLoad();
     await images.loadAll(_images);
-    await _heroSheet.load(this, 'iso/hero.png', stepTime: 0.08);
+    await _heroSheet.load(this, 'chevalier_noir_marche_768.png', stepTime: 0.08);
+    await _heroAttackSheet.load(this, 'chevalier_noir_attaque_384x768.png', stepTime: 0.07);
     await _zombieSheet.load(this, 'iso/zombie.png', stepTime: 0.14);
 
     world.addAll([
       Background(),
-      GunIcon(Vector2(-60, 40)),
-      GunIcon(Vector2(90, -30)),
-      SwordIcon(Vector2(120, 120)),
+      GunIcon(Vector2(-120, 80)),
+      GunIcon(Vector2(180, -60)),
     ]);
 
-    final player = Player(Vector2.zero(), _heroSheet);
+    final player = Player(Vector2.zero(), _heroSheet, _heroAttackSheet);
     world.add(player);
 
     // Camera follows the hero, placed above the HUD panel.
@@ -77,7 +84,7 @@ class SurvivalGame extends FlameGame
     );
     camera.follow(player);
 
-    camera.viewport.addAll([LightRadius(), Hud()]);
+    camera.viewport.addAll([LightRadius(), Hud(), WeaponSwitchButton()]);
     if (kDebugMode) {
       camera.viewport.add(FpsTextComponent(position: Vector2(4, 4), scale: Vector2.all(0.5)));
     }
@@ -96,11 +103,11 @@ class SurvivalGame extends FlameGame
     final joystick = JoystickComponent(
       priority: 200,
       knob: CircleComponent(
-        radius: 12,
+        radius: 18,
         paint: Paint()..color = Colors.white.withValues(alpha: 0.5),
       ),
       background: CircleComponent(
-        radius: 30,
+        radius: 45,
         paint: Paint()..color = Colors.white.withValues(alpha: 0.15),
       ),
       margin: const EdgeInsets.only(left: 80, bottom: Hud.panelHeight + 12),
@@ -109,16 +116,16 @@ class SurvivalGame extends FlameGame
     final shootButton = HudButtonComponent(
       priority: 200,
       button: CircleComponent(
-        radius: 20,
+        radius: 30,
         paint: Paint()..color = Gothic.blood.withValues(alpha: 0.5),
       ),
       buttonDown: CircleComponent(
-        radius: 20,
+        radius: 30,
         paint: Paint()..color = Gothic.blood.withValues(alpha: 0.85),
       ),
       margin: const EdgeInsets.only(right: 80, bottom: Hud.panelHeight + 16),
       onPressed: () {
-        if (canProcessInput()) player.shoot();
+        if (canProcessInput()) player.attack();
       },
     );
 
@@ -135,7 +142,7 @@ class SurvivalGame extends FlameGame
     if (alive >= _maxAliveZombies) return;
 
     final toSpawn = min(wave, _maxAliveZombies - alive);
-    const edge = Iso.arena - 8;
+    const edge = Iso.arena - 16;
     for (int i = 0; i < toSpawn; i++) {
       final t = _random.nextDouble() * 2 * edge - edge;
       final spawn = switch (_random.nextInt(4)) {
@@ -156,6 +163,11 @@ class SurvivalGame extends FlameGame
   }
 
   bool hasRobot() => _countAliveZombies() > 0;
+
+  /// Switches between sword and bow (top-right button or [E] key).
+  void toggleWeapon() {
+    if (canProcessInput()) weapon = weapon.next;
+  }
 
   bool canProcessInput() => !controlsLocked && !endOfGame;
 
