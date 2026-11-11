@@ -1,61 +1,52 @@
-import 'package:first_app_flutter/game/components/components.dart';
-import 'package:first_app_flutter/game/components/pixel/pixel_art_data.dart';
-import 'package:first_app_flutter/game/components/pixel/pixel_sprite.dart';
-import 'package:first_app_flutter/game/theme/game_resolution.dart';
-import 'package:first_app_flutter/game/utils/AudioManager.dart';
-import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
+import 'dart:math' as math;
+
+import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/game.dart';
+import 'package:first_app_flutter/game/iso/iso.dart';
+import 'package:first_app_flutter/game/iso/iso_body.dart';
+import 'package:first_app_flutter/game/utils/AudioManager.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 
-class Bullet extends SpriteComponent with HasGameRef<SurvivalGame>, CollisionCallbacks {
-  static Sprite? _arrowSprite;
-  Vector2 _bulletDirection;
-  Vector2 positionInitial;
+/// Arrow (image 16x4 pointing right), flying at chest height.
+class Bullet extends SpriteComponent
+    with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody {
+  Bullet(Vector2 startGround, Vector2 groundDir)
+      : _dir = groundDir.normalized(),
+        _start = startGround.clone(),
+        super(size: Vector2(16, 4), anchor: Anchor.center) {
+    ground.setFrom(startGround);
+    elevation = 20;
+    final s = Iso.deltaToScreen(_dir);
+    angle = math.atan2(s.y, s.x);
+  }
 
-  Bullet(Vector2 positionOrigin, Vector2 directionOrigin, double angleOrigin)
-      :
-        _bulletDirection = Vector2.copy(directionOrigin),
-        positionInitial = Vector2.copy(positionOrigin),
-        super(
-        angle: angleOrigin,
-        position: Vector2.copy(positionOrigin),
-        size: Vector2(3, 9) * GameResolution.pixelScale,
-        anchor: Anchor.center,
-      );
+  final Vector2 _dir;
+  final Vector2 _start;
+
+  /// Ground units per second.
+  static const _speed = 260.0;
+  static const _range = 320.0;
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
-
-    // Pixel-art arrow (pointing up; rotated by `angle`).
-    _arrowSprite ??= await PixelSprite.sprite(
-      PixelArtData.arrow,
-      PixelArtData.arrowPalette,
-    );
-    sprite = _arrowSprite;
-
+    sprite = Sprite(game.images.fromCache('iso/arrow.png'));
     AudioManager().playPanSound();
-
     add(RectangleHitbox()..collisionType = CollisionType.active);
-  }
-
-  @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollision(intersectionPoints, other);
-    if (other is! Player){
-      super.removeFromParent();
-    }
+    syncIso();
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Mise à jour de la position de l'objet en fonction de sa vélocité
-    position += _bulletDirection * 10;
-
-    if(position.distanceTo(positionInitial) > 1000){
-      super.removeFromParent();
-    }
+    ground.add(_dir * _speed * dt);
+    syncIso();
+    if (ground.distanceTo(_start) > _range) removeFromParent();
   }
 
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is! Player) removeFromParent();
+  }
 }

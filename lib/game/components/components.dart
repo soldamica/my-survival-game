@@ -1,9 +1,8 @@
-export 'background.dart';
-export 'player.dart';
-export 'icons/gun_icon.dart';
-export 'icons/sword_icon.dart';
-export 'bullet.dart';
-export 'monsters/zombie.dart';
-export 'game_over_overlay.dart';
 export 'animations/blood.dart';
+export 'background.dart';
+export 'bullet.dart';
+export 'game_over_overlay.dart';
 export 'hud/hud.dart';
+export 'icons/pickups.dart';
+export 'monsters/zombie.dart';
+export 'player.dart';

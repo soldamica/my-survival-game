@@ -1,7 +1,7 @@
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:first_app_flutter/game/iso/gothic.dart';
 import 'package:first_app_flutter/game/game_page.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -96,10 +96,8 @@ class _TitleScreenState extends State<TitleScreen> {
                     Expanded(
                       child: Text(
                         'Press any button or tap to play',
-                        style: GoogleFonts.pressStart2p(
-                          fontSize: 16,
-                          color: const Color(0xff61d3e3),
-                        ),
+                        textAlign: TextAlign.center,
+                        style: Gothic.font(size: 22, color: Gothic.gold),
                       ),
                     ),
                   ],

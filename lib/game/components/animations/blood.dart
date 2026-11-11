@@ -1,20 +1,18 @@
 import 'package:first_app_flutter/game/game.dart';
 import 'package:flame/components.dart';
 
-class Blood extends SpriteComponent with HasGameRef<SurvivalGame>{
-  static const _spriteBlood = 'blood.png';
-
+/// Blood splash at the hero's death position (screen/world coordinates).
+class Blood extends SpriteComponent with HasGameReference<SurvivalGame> {
   Blood(Vector2 position)
       : super(
-    position: position + Vector2(-150.0, -150.0),
-    size: Vector2(300, 300),
-  );
+          position: position,
+          size: Vector2.all(64),
+          anchor: Anchor.center,
+          priority: 1 << 20,
+        );
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
-
-    // Charger le sprite et l'assigner à ce composant
-    sprite = await Sprite.load(_spriteBlood);
+    sprite = await Sprite.load('blood.png');
   }
 }

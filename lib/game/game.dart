@@ -1,9 +1,10 @@
 import 'dart:math';
 
 import 'package:first_app_flutter/game/components/components.dart';
+import 'package:first_app_flutter/game/iso/character_sheet.dart';
+import 'package:first_app_flutter/game/iso/gothic.dart';
+import 'package:first_app_flutter/game/iso/iso.dart';
 import 'package:first_app_flutter/game/utils/AudioManager.dart';
-import 'package:first_app_flutter/game/utils/heroes_sprite_preloader.dart';
-import 'package:first_app_flutter/game/utils/zombie_sprite_preloader.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -13,57 +14,76 @@ import 'package:flutter/material.dart';
 
 class SurvivalGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
+  SurvivalGame()
+      : super(
+          camera: CameraComponent.withFixedResolution(
+            width: Iso.viewWidth,
+            height: Iso.viewHeight,
+          ),
+        );
 
   int bullets = 0;
   int score = 0;
   int wave = 1;
-  late TextComponent infoComponent;
-  bool hasBlood = false;
   bool endOfGame = false;
   bool controlsLocked = false;
-  Vector2 playerPosition = Vector2.zero();
+
+  /// Hero position on the ground plane (logic) and in world (screen) space.
+  final Vector2 playerGround = Vector2.zero();
+  final Vector2 playerPosition = Vector2.zero();
+
+  /// Where the hero's feet appear in the viewport (camera anchor).
+  Vector2 get heroScreenAnchor =>
+      Vector2(Iso.viewWidth / 2, (Iso.viewHeight - Hud.panelHeight) * 0.55);
 
   final Random _random = Random();
+  final CharacterSheet _heroSheet = CharacterSheet();
+  final CharacterSheet _zombieSheet = CharacterSheet();
 
   static const int _maxAliveZombies = 12;
   static const int _maxWave = 6;
 
-  SurvivalGame()
-      : super(
-          children: [
-            Background(),
-            GunIcon(Vector2(500,500)),
-            GunIcon(Vector2(800,500)),
-            SwordIcon(Vector2(1000,500)),
-          ],
-        );
+  static const _images = [
+    'iso/floor_0.png', 'iso/floor_1.png', 'iso/floor_2.png', 'iso/floor_3.png',
+    'iso/shadow.png', 'iso/arrow.png', 'iso/arrow_pickup.png', 'iso/sword_pickup.png',
+    'iso/hud_panel.png', 'iso/orb_frame.png', 'iso/orb_red.png', 'iso/orb_blue.png',
+    'iso/skill_bow.png', 'iso/skill_sword.png',
+  ];
 
-
+  @override
+  Color backgroundColor() => const Color(0xFF000000);
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
+    await super.onLoad();
+    await images.loadAll(_images);
+    await _heroSheet.load(this, 'iso/hero.png', stepTime: 0.08);
+    await _zombieSheet.load(this, 'iso/zombie.png', stepTime: 0.14);
 
-    // ALttP-style HUD (replaces RightPanel + text info).
-    add(Hud());
+    world.addAll([
+      Background(),
+      GunIcon(Vector2(-60, 40)),
+      GunIcon(Vector2(90, -30)),
+      SwordIcon(Vector2(120, 120)),
+    ]);
 
-    add(FpsTextComponent(position: Vector2(10, 80)));
-    //overlays.add('Performance');
+    final player = Player(Vector2.zero(), _heroSheet);
+    world.add(player);
 
-    HeroesSpritePreloader heroesSpritePreloader = HeroesSpritePreloader(game: this);
-    await heroesSpritePreloader.preloadAnimations(4);
-    final player = Player(size / 2, heroesSpritePreloader);
-    add(player);
+    // Camera follows the hero, placed above the HUD panel.
+    camera.viewfinder.anchor = Anchor(
+      heroScreenAnchor.x / Iso.viewWidth,
+      heroScreenAnchor.y / Iso.viewHeight,
+    );
+    camera.follow(player);
 
-    if (_isMobile) {
-      _addTouchControls(player);
+    camera.viewport.addAll([LightRadius(), Hud()]);
+    if (kDebugMode) {
+      camera.viewport.add(FpsTextComponent(position: Vector2(4, 4), scale: Vector2.all(0.5)));
     }
+    if (_isMobile) _addTouchControls(player);
 
-    ZombieSpritePreloader zombieSpritePreloader = ZombieSpritePreloader(game: this);
-    await zombieSpritePreloader.preloadAnimations(4);
-    createWave(zombieSpritePreloader);
-
-
+    createWave();
     await AudioManager().preloadSounds();
   }
 
@@ -74,98 +94,74 @@ class SurvivalGame extends FlameGame
 
   void _addTouchControls(Player player) {
     final joystick = JoystickComponent(
-      priority: 100,
+      priority: 200,
       knob: CircleComponent(
-        radius: 25,
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.6),
+        radius: 12,
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.5),
       ),
       background: CircleComponent(
-        radius: 60,
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.2),
+        radius: 30,
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.15),
       ),
-      margin: const EdgeInsets.only(left: 40, bottom: 40),
+      margin: const EdgeInsets.only(left: 80, bottom: Hud.panelHeight + 12),
     );
 
     final shootButton = HudButtonComponent(
-      priority: 100,
+      priority: 200,
       button: CircleComponent(
-        radius: 40,
-        paint: Paint()..color = Colors.red.withValues(alpha: 0.5),
+        radius: 20,
+        paint: Paint()..color = Gothic.blood.withValues(alpha: 0.5),
       ),
       buttonDown: CircleComponent(
-        radius: 40,
-        paint: Paint()..color = Colors.red.withValues(alpha: 0.8),
+        radius: 20,
+        paint: Paint()..color = Gothic.blood.withValues(alpha: 0.85),
       ),
-      margin: const EdgeInsets.only(right: 40, bottom: 50),
+      margin: const EdgeInsets.only(right: 80, bottom: Hud.panelHeight + 16),
       onPressed: () {
         if (canProcessInput()) player.shoot();
       },
     );
 
     player.joystick = joystick;
-    add(joystick);
-    add(shootButton);
+    camera.viewport.addAll([joystick, shootButton]);
   }
 
-  int _countAliveZombies() {
-    int count = 0;
-    for (final c in children) {
-      if (c is Zombie && !c.isReallyDead) count++;
-    }
-    return count;
-  }
+  int _countAliveZombies() =>
+      world.children.whereType<Zombie>().where((z) => !z.isReallyDead).length;
 
-  Future<void> createWaveAsync(ZombieSpritePreloader zombieSpritePreloader) async {
+  /// Spawns zombies on the arena border.
+  Future<void> createWave() async {
     final alive = _countAliveZombies();
     if (alive >= _maxAliveZombies) return;
 
     final toSpawn = min(wave, _maxAliveZombies - alive);
+    const edge = Iso.arena - 8;
     for (int i = 0; i < toSpawn; i++) {
-      final x = _random.nextDouble() * size.x;
-      final y = _random.nextDouble() * size.y;
-      add(
-        Zombie(
-          "leZombie",
-          Vector2(computeStartX(x), computeStartY(y)),
-          zombieSpritePreloader,
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 40)); // lisse la charge
+      final t = _random.nextDouble() * 2 * edge - edge;
+      final spawn = switch (_random.nextInt(4)) {
+        0 => Vector2(-edge, t),
+        1 => Vector2(edge, t),
+        2 => Vector2(t, -edge),
+        _ => Vector2(t, edge),
+      };
+      world.add(Zombie('leZombie', spawn, _zombieSheet));
+      await Future<void>.delayed(const Duration(milliseconds: 40));
     }
 
-    if (wave < _maxWave) {
-      wave += 1; // progression plus douce que x2
-    }
+    if (wave < _maxWave) wave += 1;
   }
 
-  void createWave(ZombieSpritePreloader zombieSpritePreloader) {
-    // garde la signature existante si utilisée ailleurs
-    createWaveAsync(zombieSpritePreloader);
+  void evalNextWave() {
+    if (!hasRobot()) createWave();
   }
 
-  void createInfoComponent(String myText, double relativeX, double relativeY) {
-    infoComponent = TextComponent(
-      text: myText,
-      position: Vector2(relativeX, relativeY),
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-        ),
-      ),
-    );
-  }
+  bool hasRobot() => _countAliveZombies() > 0;
 
-  /// Kept for existing callers; the HUD reads game values every frame.
-  void updateText() {}
+  bool canProcessInput() => !controlsLocked && !endOfGame;
 
-  void showPopup() {
-    overlays.add('GameOver');
-  }
+  void showPopup() => overlays.add('GameOver');
 
-  void hidePopup() {
-    overlays.remove('GameOver');
-  }
+  void hidePopup() => overlays.remove('GameOver');
 
   void restart() {
     overlays.remove('GameOver');
@@ -174,46 +170,14 @@ class SurvivalGame extends FlameGame
     resumeEngine();
   }
 
-  double computeStartX(double value) {
-    const margin = 8.0; // avant: 100.0
-    return value < (size.x / 2) ? margin : size.x - margin;
-  }
-
-  double computeStartY(double value) {
-    const margin = 8.0; // avant: 100.0
-    return value < (size.y / 2) ? margin : size.y - margin;
-  }
-
-  void evalNextWave(ZombieSpritePreloader zombieSpritePreloader){
-    if(!hasRobot()){
-      createWave(zombieSpritePreloader);
-    }
-  }
-
-  bool hasRobot() {
-    for (Component component in children) {
-      if (component is Zombie && !component.isReallyDead) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool canProcessInput() => !controlsLocked && !endOfGame;
-
-  void finishGame(Vector2 lastPosition) async {
+  Future<void> finishGame(Vector2 lastPosition) async {
     if (endOfGame) return;
     endOfGame = true;
     controlsLocked = true;
-    await showBlood(lastPosition);
+    world.add(Blood(lastPosition));
+    await Future<void>.delayed(const Duration(seconds: 1));
     showPopup();
     FlameAudio.bgm.stop();
     pauseEngine();
-  }
-
-  Future<void> showBlood(Vector2 lastPosition) async {
-    final endBlood = Blood(lastPosition);
-    add(endBlood);
-    return Future.delayed(const Duration(seconds: 1));
   }
 }
