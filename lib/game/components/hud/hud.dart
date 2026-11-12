@@ -1,3 +1,4 @@
+import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/game.dart';
 import 'package:first_app_flutter/game/iso/gothic.dart';
@@ -46,9 +47,14 @@ class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
   void render(Canvas canvas) {
     _panel.render(canvas);
 
-    final life = game.endOfGame ? 0.0 : 1.0;
+    final hero = game.world.children.whereType<Player>().firstOrNull;
+    final life = hero == null || hero.isDead
+        ? 0.0
+        : (hero.hp / hero.maxHp).clamp(0.0, 1.0);
     final arrows = (game.bullets / maxArrows).clamp(0.0, 1.0);
     _orbAt(canvas, Vector2(4, 6), _red, life);
+    _value.render(canvas, '${hero?.hp.round() ?? 0}', Vector2(36, 38),
+        anchor: Anchor.center);
     _orbAt(canvas, Vector2(size.x - _orb - 4, 6), _blue, arrows);
     _value.render(canvas, '${game.bullets}', Vector2(size.x - 36, 38),
         anchor: Anchor.center);

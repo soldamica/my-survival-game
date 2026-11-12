@@ -45,8 +45,7 @@ class SurvivalGame extends FlameGame
   final Random _random = Random();
   final CharacterSheet _heroSheet = CharacterSheet();
   final CharacterSheet _heroAttackSheet = CharacterSheet(frames: 4, loop: false);
-  final CharacterSheet _zombieSheet = CharacterSheet();
-  final CharacterSheet _zombieAttackSheet = CharacterSheet(frames: 4, loop: false);
+
 
   static const int _maxAliveZombies = 12;
   static const int _maxWave = 6;
@@ -67,9 +66,7 @@ class SurvivalGame extends FlameGame
     await images.loadAll(_images);
     await _heroSheet.load(this, 'chevalier_noir_marche_768.png', stepTime: 0.08);
     await _heroAttackSheet.load(this, 'chevalier_noir_attaque_384x768.png', stepTime: 0.07);
-    await _zombieSheet.load(this, 'gobelin_pique_marche_768.png', stepTime: 0.14);
-    // 4 frames x 0.15 s = 0.6 s wind-up: time for the hero to dodge.
-    await _zombieAttackSheet.load(this, 'gobelin_pique_attaque_384x768.png', stepTime: 0.15);
+    await Zombie.loadSprites(this);
 
     world.addAll([
       Background(),
@@ -137,7 +134,7 @@ class SurvivalGame extends FlameGame
   }
 
   int _countAliveZombies() =>
-      world.children.whereType<Zombie>().where((z) => !z.isReallyDead).length;
+      world.children.whereType<Mob>().where((z) => !z.isReallyDead).length;
 
   /// Spawns zombies on the arena border.
   Future<void> createWave() async {
