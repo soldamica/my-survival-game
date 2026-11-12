@@ -154,7 +154,7 @@ class SurvivalGame extends FlameGame
         2 => Vector2(t, -edge),
         _ => Vector2(t, edge),
       };
-      world.add(Zombie('leZombie', spawn, _zombieSheet, _zombieAttackSheet));
+      world.add(Zombie('leZombie', spawn));
       await Future<void>.delayed(const Duration(milliseconds: 40));
     }
 

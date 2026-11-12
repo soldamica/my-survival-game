@@ -203,7 +203,7 @@ class Player extends SpriteAnimationComponent
     final facing = Iso.deltaToScreen(_facingGround()).normalized();
     final vertical = facing.y.abs(); // 0 = left/right, 1 = up/down
     final reach = _swordReach + (_swordReachVertical - _swordReach) * vertical;
-    for (final z in game.world.children.whereType<Zombie>().toList()) {
+    for (final z in game.world.children.whereType<Mob>().toList()) {
       if (z.isReallyDead) continue;
       final to = Iso.deltaToScreen(z.ground - ground);
       final dist = to.length;

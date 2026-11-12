@@ -4,5 +4,6 @@ export 'bullet.dart';
 export 'game_over_overlay.dart';
 export 'hud/hud.dart';
 export 'icons/pickups.dart';
+export 'monsters/mob.dart';
 export 'monsters/zombie.dart';
 export 'player.dart';
