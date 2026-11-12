@@ -8,8 +8,8 @@ class Iso {
   Iso._();
 
   /// Fixed logical resolution (upscaled by the camera).
-  static const double viewWidth = 960;
-  static const double viewHeight = 540;
+  static const double viewWidth = 1152;
+  static const double viewHeight = 648;
 
   /// Ground size of one floor tile (drawn as a 64x32 diamond).
   static const double tile = 32;

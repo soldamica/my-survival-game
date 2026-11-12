@@ -26,6 +26,23 @@ class Player extends SpriteAnimationComponent
   final CharacterSheet attackSheet;
   bool isDead = false;
 
+  /// Points de vie.
+  double maxHp = 100;
+  double hp = 100;
+
+  /// Dégâts infligés par le héros.
+  double attackPower = 50;
+
+  /// Reçoit des dégâts ; meurt à 0 PV.
+  void takeDamage(double amount) {
+    if (isDead) return;
+    hp = (hp - amount).clamp(0, maxHp).toDouble();
+    if (hp <= 0) {
+      isDead = true;
+      game.finishGame(position);
+    }
+  }
+
   /// Screen pixels per second.
   static const _speed = 160.0;
 
@@ -191,7 +208,9 @@ class Player extends SpriteAnimationComponent
       final to = Iso.deltaToScreen(z.ground - ground);
       final dist = to.length;
       if (dist > reach) continue;
-      if (dist < 16 || facing.dot(to / dist) > 0.3) z.die();
+      if (dist < 16 || facing.dot(to / dist) > 0.3) {
+        z.takeDamage(attackPower);
+      }
     }
   }
 }

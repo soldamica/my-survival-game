@@ -46,6 +46,7 @@ class SurvivalGame extends FlameGame
   final CharacterSheet _heroSheet = CharacterSheet();
   final CharacterSheet _heroAttackSheet = CharacterSheet(frames: 4, loop: false);
   final CharacterSheet _zombieSheet = CharacterSheet();
+  final CharacterSheet _zombieAttackSheet = CharacterSheet(frames: 4, loop: false);
 
   static const int _maxAliveZombies = 12;
   static const int _maxWave = 6;
@@ -67,6 +68,8 @@ class SurvivalGame extends FlameGame
     await _heroSheet.load(this, 'chevalier_noir_marche_768.png', stepTime: 0.08);
     await _heroAttackSheet.load(this, 'chevalier_noir_attaque_384x768.png', stepTime: 0.07);
     await _zombieSheet.load(this, 'gobelin_pique_marche_768.png', stepTime: 0.14);
+    // 4 frames x 0.15 s = 0.6 s wind-up: time for the hero to dodge.
+    await _zombieAttackSheet.load(this, 'gobelin_pique_attaque_384x768.png', stepTime: 0.15);
 
     world.addAll([
       Background(),
@@ -151,7 +154,7 @@ class SurvivalGame extends FlameGame
         2 => Vector2(t, -edge),
         _ => Vector2(t, edge),
       };
-      world.add(Zombie('leZombie', spawn, _zombieSheet));
+      world.add(Zombie('leZombie', spawn, _zombieSheet, _zombieAttackSheet));
       await Future<void>.delayed(const Duration(milliseconds: 40));
     }
 
