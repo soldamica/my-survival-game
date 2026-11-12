@@ -66,7 +66,7 @@ class SurvivalGame extends FlameGame
     await images.loadAll(_images);
     await _heroSheet.load(this, 'chevalier_noir_marche_768.png', stepTime: 0.08);
     await _heroAttackSheet.load(this, 'chevalier_noir_attaque_384x768.png', stepTime: 0.07);
-    await Zombie.loadSprites(this);
+    await Gobelin.loadSprites(this);
 
     world.addAll([
       Background(),
@@ -151,7 +151,7 @@ class SurvivalGame extends FlameGame
         2 => Vector2(t, -edge),
         _ => Vector2(t, edge),
       };
-      world.add(Zombie('leZombie', spawn));
+      world.add(Gobelin('Gobelin', spawn));
       await Future<void>.delayed(const Duration(milliseconds: 40));
     }
 

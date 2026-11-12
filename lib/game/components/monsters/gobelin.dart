@@ -4,8 +4,8 @@ import 'package:first_app_flutter/game/utils/AudioManager.dart';
 import 'package:flame/game.dart';
 
 /// Gobelin à pique.
-class Zombie extends Mob {
-  Zombie(super.name, super.startGround);
+class Gobelin extends Mob {
+  Gobelin(super.name, super.startGround);
 
   /// Sprite de mouvement.
   static final CharacterSheet moveSprite = CharacterSheet();
