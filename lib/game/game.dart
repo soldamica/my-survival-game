@@ -82,6 +82,8 @@ class SurvivalGame extends FlameGame
       heroScreenAnchor.x / Iso.viewWidth,
       heroScreenAnchor.y / Iso.viewHeight,
     );
+    // Dézoom de 50 % : le monde est affiché à la moitié de sa taille.
+    camera.viewfinder.zoom = 0.75;
     camera.follow(player);
 
     camera.viewport.addAll([LightRadius(), Hud(), WeaponSwitchButton()]);

@@ -1,58 +1,59 @@
 # AGENTS.md
 
-## Overview
-Flutter zombie survival game built with the Flame engine.
-Targets: Linux, Android, iOS, Web, macOS, Windows.
+## Projet
+Jeu de survie isométrique Flutter + Flame (package `first_app_flutter`).
+Cibles : Linux, Android, iOS, Web, macOS, Windows.
 
-## Tech Stack
-- Flutter / Dart SDK `>=2.18.2 <3.0.0`
-- Flame `^1.19.0` (game engine)
-- flame_audio `^2.10.3` (sound)
-- google_fonts `^5.1.0`
-- Package name: `first_app_flutter`
-- Android application id: `com.micael.zombie`
+## Stack
+- Dart SDK `>=3.0.0 <4.0.0`
+- Flame `^1.19.0`, flame_audio `^2.10.3`, google_fonts `^9.0.0`
+- Android application id : `com.micael.zombie` (ne pas modifier)
 
-## Project Structure
-- `lib/main.dart` — app entry point
-- `lib/title_screen.dart` — title screen
-- `lib/game/game.dart` — main Flame game class
-- `lib/game/game_page.dart` — page hosting the game widget
-- `lib/game/RightPanel.dart` — side UI panel
-- `lib/game/components/` — game components
-  - `player.dart`, `bullet.dart`, `background.dart`, `game_over_overlay.dart`
-  - `monsters/`, `weapons/`, `animations/`, `icons/`
-  - `components.dart` — barrel export file
-- `lib/game/utils/` — utilities
-  - `AudioManager.dart` — centralized audio playback
-  - `heroes_sprite_preloader.dart`, `zombie_sprite_preloader.dart` — sprite preloading
-- `assets/images/`, `assets/audio/` — game assets (declared in `pubspec.yaml`)
-- `test/` — tests
-
-## Commands
+## Commandes
 ```bash
-flutter pub get          # install dependencies
-flutter run -d linux     # run on desktop
-flutter analyze          # static analysis / lints
-flutter test             # run tests
-flutter build apk        # build Android APK
+flutter pub get          # dépendances
+flutter run -d linux     # lancer
+flutter analyze          # analyse statique
+flutter test             # tests
+flutter build apk        # build Android
 ```
 
+## Architecture
+- `lib/main.dart` : point d'entrée ; `lib/title_screen.dart` : écran titre ; `lib/dev_game.dart` : mode dev
+- `lib/game/game.dart` : classe principale du jeu Flame ; `lib/game/game_page.dart` : widget hôte
+- `lib/game/components/`
+  - `player.dart` (héros), `bullet.dart`, `background.dart`, `game_over_overlay.dart`
+  - `monsters/` : `mob.dart` (classe abstraite) + implémentations (`gobelin.dart`…)
+  - `hud/` : `hud.dart` (globe rouge = PV du héros), `weapon_switch_button.dart`
+  - `weapons/`, `icons/`, `animations/`
+  - `components.dart` : fichier barrel d'export
+- `lib/game/iso/` : rendu isométrique (`iso.dart`, `iso_body.dart`, `gothic.dart`) et `CharacterSheet`
+- `lib/game/utils/AudioManager.dart` : gestion du son (singleton)
+- `assets/images/`, `assets/images/iso/`, `assets/audio/` : assets déclarés dans `pubspec.yaml`
+
+## Règles de gameplay
+- Héros : 100 PV, attaque 50. Ses PV sont liés au globe rouge du HUD.
+- Monstres : 100 PV par défaut, attaque 25.
+
+## Ajouter un monstre
+1. Créer une classe dans `lib/game/components/monsters/` qui étend `Mob`.
+2. Déclarer `moveSprite` et `attackSprite` en `static final CharacterSheet`.
+3. Implémenter `loadSprites` (statique), `sheet`, `attackSheet`, `maxHp`, `attack`, `playSpawnSound`, `playDeathSound`.
+4. Appeler `loadSprites` au chargement du jeu, sinon le monstre n'apparaît pas.
+5. Exporter la classe via `components.dart`.
+
 ## Conventions
-- Use snake_case for new file names. Existing exceptions (`RightPanel.dart`, `AudioManager.dart`) are kept as-is; do not rename them unless asked.
-- Follow `flutter_lints` rules configured in `analysis_options.yaml`.
-- Export new components through `lib/game/components/components.dart`.
-- Place new assets in `assets/images/` or `assets/audio/` (folders are already declared in `pubspec.yaml`).
-- Play sound effects through `AudioManager` (add a method there for new sounds); background music uses `FlameAudio.bgm`.
-- Preload sprites via the `*_sprite_preloader.dart` utilities rather than loading them ad hoc.
+- Commentaires et documentation en français.
+- snake_case pour les nouveaux fichiers (exceptions existantes `AudioManager.dart`, `RightPanel.dart` : ne pas renommer).
+- Respecter `flutter_lints` (`analysis_options.yaml`).
+- Sons via `AudioManager` (ajouter une méthode pour tout nouveau son) ; musique via `FlameAudio.bgm`.
 
-## Agent Rules
-- Never edit generated or build files: `build/`, `linux/flutter/ephemeral/`, `**/generated_plugin_registrant.*`, `ios/Flutter/Generated.xcconfig`, `ios/Flutter/flutter_export_environment.sh`.
-- Do not change the Android package id `com.micael.zombie`.
-- Do not add or upgrade dependencies without explicit approval.
-- Run `flutter analyze` after every change and fix any new issues.
-- Keep changes minimal and focused on the requested task.
+## Règles pour les agents
+- Ne jamais modifier les fichiers générés : `build/`, `linux/flutter/ephemeral/`, `**/generated_plugin_registrant.*`, `ios/Flutter/Generated.xcconfig`, `ios/Flutter/flutter_export_environment.sh`.
+- Ne pas modifier les assets de `assets/` sans demande explicite.
+- Ne pas ajouter/mettre à jour de dépendances sans accord.
+- Lancer `flutter analyze` après chaque modification et corriger les nouveaux problèmes.
+- Changements minimaux, centrés sur la demande.
 
-## Specialized Agents
-- **Designer** (`.github/agents/designer.agent.md`) — 16-bit pixel art (SNES / "A Link to the Past" inspired),
-  HUD and visuals generated by code. Theme: `lib/game/theme/`, pixel engine: `lib/game/components/pixel/`.
-
+## Agents spécialisés
+- **designer** (`.github/agents/designer.agent.md`) : pixel art 16-bit (SNES / « A Link to the Past »), HUD et sprites générés par code.
