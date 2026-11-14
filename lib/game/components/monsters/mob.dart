@@ -1,5 +1,6 @@
 import 'package:first_app_flutter/game/components/animations/hit_flash.dart';
 import 'package:first_app_flutter/game/components/bullet.dart';
+import 'package:first_app_flutter/game/components/hud/mob_health_bar.dart';
 import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/game.dart';
 import 'package:first_app_flutter/game/iso/character_sheet.dart';
@@ -87,7 +88,11 @@ abstract class Mob extends SpriteAnimationComponent
   void render(Canvas canvas) {
     renderShadow(canvas, _shadow);
     super.render(canvas);
+    _healthBar.render(canvas, hp, maxHp);
   }
+
+  /// Barre de vie avec le nom du monstre, au-dessus du sprite.
+  late final MobHealthBar _healthBar = MobHealthBar(name);
 
   @override
   void update(double dt) {
