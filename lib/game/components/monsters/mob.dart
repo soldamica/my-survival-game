@@ -108,8 +108,15 @@ abstract class Mob extends SpriteAnimationComponent
           _startAttack(toHero);
         } else {
           final dir = (game.playerGround - ground).normalized();
-          ground.add(dir * speed * dt);
+          final next = ground + dir * speed * dt;
           _face(Iso.deltaToScreen(dir), attacking: false);
+          if (_mustYield(next)) {
+            // Un mob plus ancien bloque le passage : on attend sur place.
+            playing = false;
+          } else {
+            ground.setFrom(next);
+            playing = true;
+          }
         }
       case _State.attack:
         _timer -= dt;
@@ -130,6 +137,28 @@ abstract class Mob extends SpriteAnimationComponent
     syncIso();
   }
 
+  /// Distance minimale à l'écran (px) entre deux mobs.
+  double get personalSpace => 36.0;
+
+  /// Compteur global d'apparition.
+  static int _spawnCounter = 0;
+  /// Ordre d'apparition : plus petit = plus ancien = prioritaire.
+  final int spawnOrder = _spawnCounter++;
+  /// Vrai si avancer en [next] ferait chevaucher un mob prioritaire.
+  /// Règle : le premier arrivé passe, le plus récent attend.
+  /// L'ordre est total (numéros uniques) : aucun blocage mutuel possible.
+  bool _mustYield(Vector2 next) {
+    for (final other in game.world.children.whereType<Mob>()) {
+      if (identical(other, this) || other.isReallyDead) continue;
+      if (other.spawnOrder > spawnOrder) continue; // plus récent : il cède.
+      final gap = Iso.deltaToScreen(other.ground - next).length;
+      if (gap >= personalSpace) continue;
+      // Ne bloque que si on se rapproche de l'autre (permet de s'écarter).
+      final now = Iso.deltaToScreen(other.ground - ground).length;
+      if (gap < now) return true;
+    }
+    return false;
+  }
   void _face(Vector2 screenDir, {required bool attacking}) {
     final row = Iso.dirRow(screenDir, _row);
     if (row != _row || attacking) {
