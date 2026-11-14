@@ -1,3 +1,4 @@
+import 'package:first_app_flutter/game/components/animations/hit_flash.dart';
 import 'package:first_app_flutter/game/components/components.dart';
 import 'package:first_app_flutter/game/components/weapons/weapon.dart';
 import 'package:first_app_flutter/game/game.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/services.dart';
 /// space attacks with the equipped weapon, E switches weapon.
 /// Logic runs on the ground plane.
 class Player extends SpriteAnimationComponent
-    with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody {
+    with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody, HitFlash {
   Player(Vector2 startGround, this.sheet, this.attackSheet)
       : super(
           size: Vector2.all(CharacterSheet.frame),
@@ -37,6 +38,7 @@ class Player extends SpriteAnimationComponent
   void takeDamage(double amount) {
     if (isDead) return;
     hp = (hp - amount).clamp(0, maxHp).toDouble();
+    if (amount > 0) flashHit();
     if (hp <= 0) {
       isDead = true;
       game.finishGame(position);

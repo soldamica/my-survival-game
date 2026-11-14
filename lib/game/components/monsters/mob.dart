@@ -1,3 +1,4 @@
+import 'package:first_app_flutter/game/components/animations/hit_flash.dart';
 import 'package:first_app_flutter/game/components/bullet.dart';
 import 'package:first_app_flutter/game/components/player.dart';
 import 'package:first_app_flutter/game/game.dart';
@@ -16,7 +17,7 @@ enum _State { chase, attack, recover }
 ///
 /// Les implémentations fournissent les sprites, les PV et l'attaque.
 abstract class Mob extends SpriteAnimationComponent
-    with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody {
+    with HasGameReference<SurvivalGame>, CollisionCallbacks, IsoBody, HitFlash {
   Mob(this.name, Vector2 startGround)
       : super(
           size: Vector2.all(CharacterSheet.frame),
@@ -154,6 +155,7 @@ abstract class Mob extends SpriteAnimationComponent
   void takeDamage(double amount) {
     if (isReallyDead) return;
     hp = (hp - amount).clamp(0, maxHp).toDouble();
+    if (amount > 0) flashHit();
     if (hp <= 0) die();
   }
 
