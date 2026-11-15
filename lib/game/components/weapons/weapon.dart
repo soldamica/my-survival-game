@@ -1,7 +1,7 @@
 
 /// Weapons the hero can switch between.
 enum Weapon {
-  sword('ÉPÉE', 'iso/skill_sword.png'),
+  sword('ÉPÉE', 'sword.png'),
   bow('ARC', 'iso/skill_bow.png');
 
   const Weapon(this.label, this.icon);

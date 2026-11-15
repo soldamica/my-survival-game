@@ -54,7 +54,7 @@ class SurvivalGame extends FlameGame
     'iso/floor_0.png', 'iso/floor_1.png', 'iso/floor_2.png', 'iso/floor_3.png',
     'iso/shadow.png', 'iso/arrow.png', 'iso/arrow_pickup.png',
     'iso/hud_panel.png', 'iso/orb_frame.png', 'iso/orb_red.png', 'iso/orb_blue.png',
-    'iso/skill_bow.png', 'iso/skill_sword.png',
+    'iso/skill_bow.png', 'iso/skill_sword.png', 'sword.png',
   ];
 
   @override

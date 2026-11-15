@@ -40,7 +40,7 @@ class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
     _red = s('orb_red');
     _blue = s('orb_blue');
     _bow = s('skill_bow');
-    _sword = s('skill_sword');
+    _sword = Sprite(game.images.fromCache('sword.png'));
   }
 
   @override
@@ -63,7 +63,8 @@ class Hud extends PositionComponent with HasGameReference<SurvivalGame> {
     const y = 32.0;
     const swordRect = Rect.fromLTWH(258, y, 28, 28);
     const bowRect = Rect.fromLTWH(354, y, 28, 28);
-    _sword.render(canvas, position: Vector2(swordRect.left, y));
+    _sword.render(canvas,
+        position: Vector2(swordRect.left, y), size: Vector2.all(28));
     _label.render(canvas, 'ÉPÉE', Vector2(272, y - 2), anchor: Anchor.bottomCenter);
     _bow.render(canvas, position: Vector2(bowRect.left, y));
     if (game.bullets <= 0) canvas.drawRect(bowRect, _lock);
