@@ -167,8 +167,10 @@ class Player extends SpriteAnimationComponent
     if (isDead || _attackTime > 0) return;
     switch (game.weapon) {
       case Weapon.sword:
+        Weapon.sword.playSound();
         _startSwing();
       case Weapon.bow:
+        if (game.bullets > 0) Weapon.bow.playSound();
         shoot(); // does nothing without arrows
     }
   }

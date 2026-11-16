@@ -8,6 +8,7 @@ import 'package:first_app_flutter/game/iso/iso.dart';
 import 'package:first_app_flutter/game/iso/iso_body.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/painting.dart';
 
 enum _State { chase, attack, recover }
@@ -29,6 +30,9 @@ abstract class Mob extends SpriteAnimationComponent
 
   final String name;
   bool isReallyDead = false;
+
+  /// Son joué quand le mob attaque (dans assets/audio/).
+  String grunt = 'grunt.mp3';
 
   /// Sprite de mouvement.
   CharacterSheet get sheet;
@@ -172,6 +176,7 @@ abstract class Mob extends SpriteAnimationComponent
     _timer = attackSheet.duration;
     if (!toHero.isZero()) _attackDir.setFrom(toHero.normalized());
     _face(_attackDir, attacking: true);
+    FlameAudio.play(grunt, volume: 0.5);
     animationTicker?.reset();
     playing = true;
   }
@@ -213,4 +218,3 @@ abstract class Mob extends SpriteAnimationComponent
     }
   }
 }
-
